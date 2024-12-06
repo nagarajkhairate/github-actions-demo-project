@@ -1,0 +1,46 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch (or change to your default branch)
+  pull_request:
+    branches:
+      - main  # Trigger on pull requests to main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Check out the code in the repository
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'  # Set the Node.js version you want to use
+
+      - name: Install dependencies
+        run: npm install  # Install your dependencies defined in package.json
+
+      - name: Run tests
+        run: npm test  # Run the tests using the command in your package.json (e.g., jest)
+
+      - name: Build the project
+        run: npm run build  # Optional step, run this only if you have a build script
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Upload test results (optional)
+        if: always()  # This ensures it runs even if previous steps fail
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: test-results/  # Path where Jest test results are stored, adjust accordingly
